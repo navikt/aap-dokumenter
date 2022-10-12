@@ -1,0 +1,38 @@
+apiVersion: nais.io/v1alpha1
+kind: Application
+metadata:
+  name: dokumenter
+  namespace: aap
+  labels:
+    team: aap
+  annotations:
+    github.url: "https://github.com/navikt/aap-dokumenter"
+spec:
+  image: {{image}}
+  secureLogs:
+    enabled: true
+  replicas:
+    cpuThresholdPercentage: 90
+    disableAutoScaling: true
+    max: 1
+    min: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 500Mi
+    requests:
+      cpu: 500m
+      memory: 500Mi
+  liveness:
+    path: /actuator/live
+    initialDelay: 1
+    periodSeconds: 1
+    failureThreshold: 60
+  readiness:
+    path: /actuator/ready
+    initialDelay: 1
+    periodSeconds: 1
+    failureThreshold: 60
+  prometheus:
+    enabled: true
+    path: /actuator/metrics
