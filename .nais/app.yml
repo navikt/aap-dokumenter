@@ -11,6 +11,13 @@ spec:
   image: {{image}}
   secureLogs:
     enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: {{saf.host}}
+  azure:
+    application:
+      enabled: true
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: true
@@ -36,3 +43,6 @@ spec:
   prometheus:
     enabled: true
     path: /actuator/metrics
+  env:
+    - name: SAF_SCOPE
+      value: {{saf.scope}}

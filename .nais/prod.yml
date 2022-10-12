@@ -1,0 +1,3 @@
+saf:
+  host: https://saf.intern.nav.no
+  scope: api://prod-fss.teamdokumenthandtering.saf/.default
