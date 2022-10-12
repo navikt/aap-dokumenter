@@ -53,7 +53,7 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
           RESOURCE: .nais/app.yml
-          VARS: .nais/dev.yml
+#          VARS: .nais/dev.yml
 
   deploy-prod:
     name: Deploy (prod)
@@ -67,4 +67,4 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: prod-gcp
           RESOURCE: .nais/app.yml
-          VARS: .nais/prod.yml
+#          VARS: .nais/prod.yml
