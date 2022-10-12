@@ -1,0 +1,8 @@
+saf:
+  host: ${SAF_HOST}
+  scope: ${SAF_SCOPE}
+
+azure:
+  tokenEndpoint: ${AZURE_OPENID_CONFIG_TOKEN_ENDPOINT}
+  clientId: ${AZURE_APP_CLIENT_ID}
+  clientSecret: ${AZURE_APP_CLIENT_SECRET}
