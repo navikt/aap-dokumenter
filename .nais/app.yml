@@ -14,6 +14,10 @@ spec:
   azure:
     application:
       enabled: true
+  accessPolicy:
+    outbound:
+      external:
+        - host: https://saf.dev.intern.nav.no
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: true
