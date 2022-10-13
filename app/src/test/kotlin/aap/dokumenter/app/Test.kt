@@ -8,12 +8,12 @@ import org.junit.jupiter.api.Test
 
 
 class Test {
-    @Test
-    fun test() {
-        testApplication {
-            application {
-                dok()
-            }
-        }
-    }
+//    @Test
+//    fun test() {
+//        testApplication {
+//            application {
+//                dok()
+//            }
+//        }
+//    }
 }
