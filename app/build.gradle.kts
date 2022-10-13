@@ -7,7 +7,7 @@ application {
     mainClass.set("aap.dokumenter.app.AppKt")
 }
 
-val aapLibsVersion = "3.4.7"
+val aapLibsVersion = "3.5.4"
 val ktorVersion = "2.1.2"
 
 dependencies {
