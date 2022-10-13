@@ -5,9 +5,14 @@ package aap.dokumenter.app
 
 import io.ktor.server.testing.*
 import org.junit.jupiter.api.Test
+import kotlin.test.assertTrue
 
 
 class Test {
+    @Test
+    fun testmeg() {
+        assertTrue(true)
+    }
 //    @Test
 //    fun test() {
 //        testApplication {
