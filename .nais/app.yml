@@ -15,9 +15,9 @@ spec:
     application:
       enabled: true
   accessPolicy:
-    outbound:
-      external:
-        - host: https://saf.dev.intern.nav.no
+    inbound:
+      rules:
+        - application: soknad-behandling
   replicas:
     cpuThresholdPercentage: 90
     disableAutoScaling: true

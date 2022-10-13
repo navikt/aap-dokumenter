@@ -7,14 +7,17 @@ application {
     mainClass.set("aap.dokumenter.app.AppKt")
 }
 
-val aapLibsVersion = "3.4.7"
+val aapLibsVersion = "3.5.6"
 val ktorVersion = "2.1.2"
 
 dependencies {
-    implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibsVersion")
+    implementation("com.github.navikt.aap-libs:ktor-auth-behalfof:$aapLibsVersion")
+    implementation("com.github.navikt.aap-libs:ktor-utils:$aapLibsVersion")
 
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
 
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")

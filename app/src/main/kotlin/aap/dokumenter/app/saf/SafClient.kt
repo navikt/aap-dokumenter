@@ -12,13 +12,13 @@ import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
-import no.nav.aap.ktor.client.HttpClientAzureAdTokenProvider
+import no.nav.aap.ktor.client.HttpClientAdBehalfOfTokenProvider
 import org.slf4j.LoggerFactory
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
 
 class SafClient(private val config: Config) {
-    private val tokenProvider = HttpClientAzureAdTokenProvider(config.azure, config.saf.scope)
+    private val tokenProvider = HttpClientAdBehalfOfTokenProvider(config.azure, config.saf.scope)
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)
         install(HttpRequestRetry)
@@ -36,35 +36,27 @@ class SafClient(private val config: Config) {
         }
     }
 
-    suspend fun hentDokumenter(personident: String) : SafResponse {
-        val token = tokenProvider.getToken()
+    suspend fun hentDokumenter(
+        personident: String,
+        saksbehandlerToken: String,
+        antall: Int = Int.MAX_VALUE,
+    ): DokumentoversiktBrukerResponse {
+        val token = tokenProvider.getBehalfOfToken(saksbehandlerToken)
         val request = httpClient.post(config.saf.host) {
             contentType(ContentType.Application.Json)
             bearerAuth(token)
-            setBody(request(personident))
+            setBody(
+                HentDokumentoversiktBruker(
+                    query = SafQueries.dokumentoversiktBruker(),
+                    variables = Variables(
+                        brukerId = BrukerId(personident, BrukerIdType.FNR),
+                        tema = listOf(Tema.AAP, Tema.SYK, Tema.SYM),
+                        foerste = antall,
+                        etter = "0",
+                    ),
+                )
+            )
         }
         return request.body()
     }
 }
-
-fun request(personident: String) : String = """
-query {
-  dokumentoversiktBruker(brukerId: {id: "$personident", type: FNR}, foerste: 3) {
-    journalposter {
-      journalpostId
-      tittel
-      journalposttype
-      journalstatus
-      tema
-      dokumenter {
-        dokumentInfoId
-        tittel
-      }
-    }
-  }
-}    
-"""
-
-data class SafResponse(
-    val journalposter: String,
-)
