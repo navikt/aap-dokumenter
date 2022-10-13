@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import no.nav.aap.ktor.client.HttpClientAdBehalfOfTokenProvider
 import org.slf4j.LoggerFactory
+import java.util.*
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
 
@@ -42,9 +43,11 @@ class SafClient(private val config: Config) {
         antall: Int = Int.MAX_VALUE,
     ): DokumentoversiktBrukerResponse {
         val token = tokenProvider.getBehalfOfToken(saksbehandlerToken)
+        val callId = UUID.randomUUID()
         val request = httpClient.post(config.saf.host) {
             contentType(ContentType.Application.Json)
             bearerAuth(token)
+            header("Nav-Callid", callId)
             setBody(
                 HentDokumentoversiktBruker(
                     query = SafQueries.dokumentoversiktBruker(),
@@ -57,6 +60,7 @@ class SafClient(private val config: Config) {
                 )
             )
         }
+        secureLog.info("Calling saf(t) with call-id: $callId")
         return request.body()
     }
 }
