@@ -4,7 +4,7 @@ object SafQueries {
     fun dokumentoversiktBruker() = HentDokumentoversiktBruker::class.java
         .getResource("/dokumentoversiktBruker.graphql")
         ?.readText()
-        ?.replace("[\n\r]", "")
+        ?.replace("[\n\r]".toRegex(), "")
         ?: error("Fant ikke graphql query ressursen")
 }
 

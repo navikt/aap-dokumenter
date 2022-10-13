@@ -3,15 +3,18 @@
  */
 package aap.dokumenter.app
 
-import io.ktor.server.testing.*
+import aap.dokumenter.app.saf.SafQueries
 import org.junit.jupiter.api.Test
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 
 class Test {
     @Test
     fun testmeg() {
-        assertTrue(true)
+        val actualQuery = SafQueries.dokumentoversiktBruker()
+        val expectedQuery = "query(\$brukerId: BrukerIdInput!, \$tema: [Tema!], \$foerste: Int, \$etter: String) {    dokumentoversiktBruker(        brukerId: \$brukerId,        tema: \$tema,        journalstatuser: [FERDIGSTILT,JOURNALFOERT,EKSPEDERT, MOTTATT],        foerste: \$foerste,        etter: \$etter) {        journalposter {            journalpostId            tittel            journalposttype            journalstatus            tema            temanavn            behandlingstema            behandlingstemanavn            sak {                datoOpprettet                fagsakId                fagsaksystem            }            bruker {                id                type            }            avsenderMottaker {                id                type                navn                land                erLikBruker            }            journalfoerendeEnhet            journalfortAvNavn            opprettetAvNavn            skjerming            datoOpprettet            dokumenter {                dokumentInfoId                tittel                brevkode                dokumentstatus                datoFerdigstilt                originalJournalpostId                skjerming                dokumentvarianter {                    variantformat                    filnavn                    saksbehandlerHarTilgang                    skjerming                }            }        }        sideInfo {            sluttpeker            finnesNesteSide            antall            totaltAntall        }    }}"
+
+        assertEquals(expectedQuery, actualQuery)
     }
 //    @Test
 //    fun test() {
