@@ -6,6 +6,7 @@ import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import io.ktor.server.application.*
@@ -32,7 +33,9 @@ fun main() {
 }
 
 fun Application.dok() {
+    val config = loadConfig<Config>()
     val prometheus = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+
     install(MicrometerMetrics) { registry = prometheus }
     install(ContentNegotiation) {
         jackson {
@@ -40,8 +43,6 @@ fun Application.dok() {
             disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
         }
     }
-
-    val config = loadConfig<Config>()
 
     val jwkProvider: JwkProvider = JwkProviderBuilder(config.oauth.jwksUrl)
         .cached(10, 24, TimeUnit.HOURS)
@@ -54,10 +55,10 @@ fun Application.dok() {
             verifier(jwkProvider, config.oauth.issuer)
             challenge { _, _ -> call.respond(HttpStatusCode.Unauthorized, "Ikke tilgang") }
             validate { cred ->
-                // Check if this app is the audience
-                if (cred.audience.contains(config.azure.clientId)) {
-                    JWTPrincipal(cred.payload)
-                } else return@validate null
+                when (config.azure.clientId) {
+                    in cred.audience -> JWTPrincipal(cred.payload)
+                    else -> null
+                }
             }
         }
     }
@@ -71,17 +72,13 @@ fun Application.dok() {
                     val token = call.request.getAccessToken()
 
                     val personident = call.parameters.getOrFail("personident")
-
                     val safResponse = safClient.hentDokumenter(personident, token)
 
-                    if (safResponse.data?.dokumentoversiktBruker != null) {
-                        call.respond(safResponse.data.dokumentoversiktBruker)
-
-                        if (safResponse.errors != null && safResponse.errors.isNotEmpty()) {
-                            secureLog.error("Fikk response fra Saf(t) som inneholder errors: ${safResponse.errors}")
-                        }
-                    } else {
-                        call.respond(HttpStatusCode.NotFound, safResponse.errors ?: "tom response")
+                    safResponse.data?.let { data ->
+                        call.respond(data.dokumentoversiktBruker)
+                    } ?: safResponse.errors?.let { errors ->
+                        secureLog.error("Response fra Saf(t) inneholder feil: $errors")
+                        call.respond(HttpStatusCode.BadRequest, errors)
                     }
                 }
 
@@ -89,19 +86,19 @@ fun Application.dok() {
                     val token = call.request.getAccessToken()
 
                     val personident = call.parameters.getOrFail("personident")
-
                     val safResponse = safClient.hentDokumenter(personident, token)
 
                     val pdfListe: List<ByteArray> = safResponse.data?.dokumentoversiktBruker?.journalposter
                         ?.flatMap { journalpost ->
                             journalpost.dokumenter?.flatMap { dokumentInfo ->
-                                dokumentInfo.dokumentvarianter.map { dokumentvariant ->
-                                    safClient.hentPdf(
+                                dokumentInfo.dokumentvarianter.mapNotNull { dokumentvariant ->
+                                    val response = safClient.hentPdf(
                                         journalpostId = journalpost.journalpostId,
                                         dokumentInfoId = dokumentInfo.dokumentInfoId,
                                         variantformat = dokumentvariant.variantformat,
                                         saksbehandlerToken = token,
                                     )
+                                    if (response.status.isSuccess()) response.body<ByteArray>() else null
                                 }
                             }.orEmpty()
                         }.orEmpty()
@@ -116,30 +113,28 @@ fun Application.dok() {
                     val dokumentInfoId = call.parameters.getOrFail("dokumentInfoId")
                     val variantformat = enumValueOf<Variantformat>(call.parameters.getOrFail("variantformat"))
 
-                    val pdf = safClient.hentPdf(
+                    val response = safClient.hentPdf(
                         journalpostId = journalpostId,
                         dokumentInfoId = dokumentInfoId,
                         variantformat = variantformat,
                         saksbehandlerToken = token,
                     )
-                    call.respond(pdf)
+
+                    when (val status = response.status) {
+                        HttpStatusCode.OK -> call.respond(status, response.body<ByteArray>())
+                        HttpStatusCode.Unauthorized -> call.respond(status, "Saf(t) kunne ikke autorisere bruker")
+                        HttpStatusCode.Forbidden -> call.respond(status, "Saf(t) kunne ikke gi bruker tilgang til PDF")
+                        HttpStatusCode.NotFound -> call.respond(status, "Saf(t) fant ingen dokumenter")
+                        else -> call.respond(status, "Saf(t) returnerte for aap-dokumenter en ukjent status")
+                    }
                 }
             }
         }
 
         route("/actuator") {
-
-            get("/metrics") {
-                call.respondText(prometheus.scrape())
-            }
-
-            get("/live") {
-                call.respondText("vedtak")
-            }
-
-            get("/ready") {
-                call.respondText("vedtak")
-            }
+            get("/metrics") { call.respondText(prometheus.scrape()) }
+            get("/live") { call.respondText("vedtak") }
+            get("/ready") { call.respondText("vedtak") }
         }
     }
 }

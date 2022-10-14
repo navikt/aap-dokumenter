@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
 import no.nav.aap.ktor.client.HttpClientAdBehalfOfTokenProvider
@@ -68,14 +69,14 @@ class SafClient(private val config: Config) {
         dokumentInfoId: String,
         variantformat: Variantformat,
         saksbehandlerToken: String,
-    ): ByteArray {
+    ): HttpResponse {
         val obo = tokenProvider.getBehalfOfToken(saksbehandlerToken)
         val callId = UUID.randomUUID()
         val url = "${config.saf.host}/graphql/rest/hentdokument/$journalpostId/$dokumentInfoId/$variantformat"
-        val response = httpClient.get(url) {
+        return httpClient.get(url) {
             bearerAuth(obo)
+            contentType(ContentType.Application.Pdf)
             header("Nav-Callid", callId)
         }
-        return response.body()
     }
 }
