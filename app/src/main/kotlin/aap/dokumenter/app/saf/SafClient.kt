@@ -42,11 +42,11 @@ class SafClient(private val config: Config) {
         saksbehandlerToken: String,
         antall: Int = Int.MAX_VALUE,
     ): DokumentoversiktBrukerResponse {
-        val token = tokenProvider.getBehalfOfToken(saksbehandlerToken)
+        val obo = tokenProvider.getBehalfOfToken(saksbehandlerToken)
         val callId = UUID.randomUUID()
-        val request = httpClient.post(config.saf.host) {
+        val response = httpClient.post("${config.saf.host}/graphql") {
             contentType(ContentType.Application.Json)
-            bearerAuth(token)
+            bearerAuth(obo)
             header("Nav-Callid", callId)
             setBody(
                 HentDokumentoversiktBruker(
@@ -60,6 +60,22 @@ class SafClient(private val config: Config) {
                 )
             )
         }
-        return request.body()
+        return response.body()
+    }
+
+    suspend fun hentPdf(
+        journalpostId: String,
+        dokumentInfoId: String,
+        variantformat: Variantformat,
+        saksbehandlerToken: String,
+    ): ByteArray {
+        val obo = tokenProvider.getBehalfOfToken(saksbehandlerToken)
+        val callId = UUID.randomUUID()
+        val url = "${config.saf.host}/graphql/rest/hentdokument/$journalpostId/$dokumentInfoId/$variantformat"
+        val response = httpClient.get(url) {
+            bearerAuth(obo)
+            header("Nav-Callid", callId)
+        }
+        return response.body()
     }
 }
