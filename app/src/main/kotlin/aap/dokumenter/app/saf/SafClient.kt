@@ -24,7 +24,7 @@ class SafClient(private val config: Config) {
         install(HttpTimeout)
         install(HttpRequestRetry)
         install(Logging) {
-            level = LogLevel.BODY
+            level = LogLevel.ALL
             logger = object : Logger {
                 override fun log(message: String) = secureLog.info(message)
             }
@@ -60,7 +60,6 @@ class SafClient(private val config: Config) {
                 )
             )
         }
-        secureLog.info("Calling saf(t) with call-id: $callId")
         return request.body()
     }
 }
