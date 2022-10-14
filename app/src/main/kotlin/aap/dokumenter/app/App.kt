@@ -44,10 +44,9 @@ fun Application.dok() {
         }
     }
 
-    val jwkProvider: JwkProvider = JwkProviderBuilder(config.oauth.jwksUrl)
-        .cached(10, 24, TimeUnit.HOURS)
-        .rateLimited(10, 1, TimeUnit.MINUTES)
-        .build()
+    val jwkProvider: JwkProvider =
+        JwkProviderBuilder(config.oauth.jwksUrl).cached(10, 24, TimeUnit.HOURS).rateLimited(10, 1, TimeUnit.MINUTES)
+            .build()
 
     install(Authentication) {
         jwt {
@@ -88,8 +87,8 @@ fun Application.dok() {
                     val personident = call.parameters.getOrFail("personident")
                     val safResponse = safClient.hentDokumenter(personident, token)
 
-                    val pdfListe: List<ByteArray> = safResponse.data?.dokumentoversiktBruker?.journalposter
-                        ?.flatMap { journalpost ->
+                    val pdfListe: List<ByteArray> =
+                        safResponse.data?.dokumentoversiktBruker?.journalposter?.flatMap { journalpost ->
                             journalpost.dokumenter?.flatMap { dokumentInfo ->
                                 dokumentInfo.dokumentvarianter.mapNotNull { dokumentvariant ->
                                     val response = safClient.hentPdf(
@@ -120,8 +119,17 @@ fun Application.dok() {
                         saksbehandlerToken = token,
                     )
 
+                    fun dokument(pdf: ByteArray) = Dokument(
+                        data = pdf,
+                        journalpostId = journalpostId,
+                        dokumentInfoId = dokumentInfoId,
+                        variantformat = variantformat,
+                        contentType = response.contentType()?.contentType,
+                        contentDisposition = response.headers["Content-Disposition"]
+                    )
+
                     when (val status = response.status) {
-                        HttpStatusCode.OK -> call.respond(status, response.body<ByteArray>())
+                        HttpStatusCode.OK -> call.respond(status, dokument(response.body()))
                         HttpStatusCode.Unauthorized -> call.respond(status, "Saf(t) kunne ikke autorisere bruker")
                         HttpStatusCode.Forbidden -> call.respond(status, "Saf(t) kunne ikke gi bruker tilgang til PDF")
                         HttpStatusCode.NotFound -> call.respond(status, "Saf(t) fant ingen dokumenter")
@@ -141,3 +149,13 @@ fun Application.dok() {
 
 private fun ApplicationRequest.getAccessToken() =
     authorization()?.removePrefix("Bearer ") ?: error("Auth er feilkonfigurert")
+
+
+data class Dokument(
+    val data: ByteArray,
+    val journalpostId: String,
+    val dokumentInfoId: String,
+    val variantformat: Variantformat,
+    val contentType: String?,
+    val contentDisposition: String?,
+)

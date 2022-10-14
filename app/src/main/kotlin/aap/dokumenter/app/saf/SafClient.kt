@@ -75,7 +75,6 @@ class SafClient(private val config: Config) {
         val url = "${config.saf.host}/graphql/rest/hentdokument/$journalpostId/$dokumentInfoId/$variantformat"
         return httpClient.get(url) {
             bearerAuth(obo)
-            contentType(ContentType.Application.Pdf)
             header("Nav-Callid", callId)
         }
     }
