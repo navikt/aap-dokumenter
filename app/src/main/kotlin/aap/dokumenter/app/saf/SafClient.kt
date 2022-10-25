@@ -13,14 +13,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.jackson.*
-import no.nav.aap.ktor.client.HttpClientAdBehalfOfTokenProvider
+import no.nav.aap.ktor.client.AzureAdTokenProvider
 import org.slf4j.LoggerFactory
 import java.util.*
 
 private val secureLog = LoggerFactory.getLogger("secureLog")
 
 class SafClient(private val config: Config) {
-    private val tokenProvider = HttpClientAdBehalfOfTokenProvider(config.azure, config.saf.scope)
+    private val tokenProvider = AzureAdTokenProvider(config.azure, config.saf.scope)
     private val httpClient = HttpClient(CIO) {
         install(HttpTimeout)
         install(HttpRequestRetry)
@@ -43,7 +43,7 @@ class SafClient(private val config: Config) {
         saksbehandlerToken: String,
         antall: Int = Int.MAX_VALUE,
     ): DokumentoversiktBrukerResponse {
-        val obo = tokenProvider.getBehalfOfToken(saksbehandlerToken)
+        val obo = tokenProvider.getOnBehalfOfToken(saksbehandlerToken)
         val callId = UUID.randomUUID()
         val response = httpClient.post("${config.saf.host}/graphql") {
             contentType(ContentType.Application.Json)
@@ -70,7 +70,7 @@ class SafClient(private val config: Config) {
         variantformat: Variantformat,
         saksbehandlerToken: String,
     ): HttpResponse {
-        val obo = tokenProvider.getBehalfOfToken(saksbehandlerToken)
+        val obo = tokenProvider.getOnBehalfOfToken(saksbehandlerToken)
         val callId = UUID.randomUUID()
         val url = "${config.saf.host}/graphql/rest/hentdokument/$journalpostId/$dokumentInfoId/$variantformat"
         return httpClient.get(url) {

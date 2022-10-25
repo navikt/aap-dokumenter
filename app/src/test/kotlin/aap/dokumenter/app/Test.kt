@@ -16,12 +16,4 @@ class Test {
 
         assertEquals(expectedQuery, actualQuery)
     }
-//    @Test
-//    fun test() {
-//        testApplication {
-//            application {
-//                dok()
-//            }
-//        }
-//    }
 }

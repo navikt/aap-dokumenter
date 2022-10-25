@@ -7,24 +7,27 @@ application {
     mainClass.set("aap.dokumenter.app.AppKt")
 }
 
-val aapLibsVersion = "3.5.6"
+val aapLibsVersion = "3.5.12"
 val ktorVersion = "2.1.2"
 
 dependencies {
-    implementation("com.github.navikt.aap-libs:ktor-auth-behalfof:$aapLibsVersion")
+    implementation("com.github.navikt.aap-libs:ktor-auth-azuread:$aapLibsVersion")
     implementation("com.github.navikt.aap-libs:ktor-utils:$aapLibsVersion")
 
     implementation("io.ktor:ktor-client-logging:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
 
     implementation("io.ktor:ktor-server-auth:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt:$ktorVersion")
     implementation("io.ktor:ktor-server-netty:$ktorVersion")
     implementation("io.ktor:ktor-server-core:$ktorVersion")
     implementation("io.ktor:ktor-server-content-negotiation:$ktorVersion")
-    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.9.5")
 
+    implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
+
+    implementation("io.micrometer:micrometer-registry-prometheus:1.9.5")
     implementation("ch.qos.logback:logback-classic:1.4.4")
     implementation("net.logstash.logback:logstash-logback-encoder:7.2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.13.4")
