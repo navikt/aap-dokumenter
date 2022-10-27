@@ -7,7 +7,7 @@ application {
     mainClass.set("aap.dokumenter.app.AppKt")
 }
 
-val aapLibsVersion = "3.5.12"
+val aapLibsVersion = "3.5.22"
 val ktorVersion = "2.1.2"
 
 dependencies {
@@ -39,7 +39,7 @@ dependencies {
 
 repositories {
     mavenCentral()
-    maven("https://jitpack.io")
+    maven("https://github-package-registry-mirror.gc.nav.no/cached/maven-release")
 }
 
 tasks {

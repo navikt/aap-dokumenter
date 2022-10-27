@@ -1,4 +1,10 @@
 version: 2
+registries:
+  maven-github:
+    type: maven-repository
+    url: https://github-package-registry-mirror.gc.nav.no/cached/maven-release
+    username: POSTMAN
+    password: PAT
 
 updates:
 
@@ -13,3 +19,5 @@ updates:
     schedule:
       interval: daily
     open-pull-requests-limit: 15
+    registries:
+      - maven-github
